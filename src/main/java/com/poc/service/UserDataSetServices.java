@@ -93,12 +93,19 @@ public class UserDataSetServices {
     }
 
 
-    public List<DataSetDTO> getDetails(String stock) {
+    public ClientResponse getDetails(String stock) {
+        ClientResponse clientResponse = new ClientResponse();
         List<DataSet> dataSets = dataSetService.getDataSetByStock(stock);
-        return dataSets.stream().map(data -> {
+        List<DataSetDTO> dataSetDTOS = dataSets.stream().map(data -> {
             DataSetDTO dataSetDTO = new DataSetDTO();
             BeanUtils.copyProperties(data, dataSetDTO);
             return dataSetDTO;
         }).collect(Collectors.toList());
+        if (ObjectUtils.isNotEmpty(dataSetDTOS)) {
+            clientResponse.setDataSets(dataSetDTOS);
+            return clientResponse;
+        }
+        clientResponse.setErrors(List.of("No data present"));
+        return clientResponse;
     }
 }

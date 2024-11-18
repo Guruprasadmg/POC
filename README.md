@@ -3,7 +3,7 @@
 ### How to run
 
 Clone the project from
-Github --
+Github -- https://github.com/Guruprasadmg/POC.git
 Build and Run:
 mvn clean install <br>
 mvn spring-boot:run
@@ -18,3 +18,6 @@ Build : Maven
 
 # Tools
 IDE : IntelliJ
+
+# Swagger 
+http://localhost:8089/swagger-ui.html
