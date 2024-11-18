@@ -94,18 +94,36 @@ public class UserDataSetServices {
 
 
     public ClientResponse getDetails(String stock) {
-        ClientResponse clientResponse = new ClientResponse();
-        List<DataSet> dataSets = dataSetService.getDataSetByStock(stock);
-        List<DataSetDTO> dataSetDTOS = dataSets.stream().map(data -> {
-            DataSetDTO dataSetDTO = new DataSetDTO();
-            BeanUtils.copyProperties(data, dataSetDTO);
-            return dataSetDTO;
-        }).collect(Collectors.toList());
-        if (ObjectUtils.isNotEmpty(dataSetDTOS)) {
-            clientResponse.setDataSets(dataSetDTOS);
+        try {
+            ClientResponse clientResponse = new ClientResponse();
+            List<DataSet> dataSets = dataSetService.getDataSetByStock(stock);
+            List<DataSetDTO> dataSetDTOS = dataSets.stream().map(data -> {
+                DataSetDTO dataSetDTO = new DataSetDTO();
+                BeanUtils.copyProperties(data, dataSetDTO);
+                return dataSetDTO;
+            }).collect(Collectors.toList());
+            if (ObjectUtils.isNotEmpty(dataSetDTOS)) {
+                clientResponse.setDataSets(dataSetDTOS);
+                return clientResponse;
+            }
+            clientResponse.setErrors(List.of("No data present"));
             return clientResponse;
+        } catch (Exception exception) {
+            log.error("Failed to fetch {}", exception.getMessage());
+            throw new DataSetException(exception.getMessage(), exception);
         }
-        clientResponse.setErrors(List.of("No data present"));
-        return clientResponse;
+    }
+
+    public ClientResponse add(DataSetDTO data) {
+        ClientResponse clientResponse = new ClientResponse();
+        try {
+            DataSet dataSet = new DataSet();
+            BeanUtils.copyProperties(data, dataSet);
+            clientResponse.setStatus("Data has been added");
+            return clientResponse;
+        } catch (Exception exception) {
+            log.error("Failed to add {}", exception.getMessage());
+            throw new DataSetException(exception.getMessage(), exception);
+        }
     }
 }

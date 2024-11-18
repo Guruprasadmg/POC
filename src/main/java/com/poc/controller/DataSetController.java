@@ -1,6 +1,7 @@
 package com.poc.controller;
 
 import com.poc.model.ClientResponse;
+import com.poc.model.DataSetDTO;
 import com.poc.service.UserDataSetServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,8 +23,13 @@ public class DataSetController {
         return new ResponseEntity<>(userDataSetServices.bulkUpload(files), HttpStatus.OK);
     }
 
-    @GetMapping(path = "/details")
-    public ResponseEntity<ClientResponse> getDetails(@RequestParam(value = "stock", required = true) String stock) {
+    @PostMapping(path = "/add")
+    public ResponseEntity<ClientResponse> add(@RequestBody DataSetDTO data) {
+        return new ResponseEntity<>(userDataSetServices.add(data), HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/details/{stock}")
+    public ResponseEntity<ClientResponse> getDetails(@PathVariable(value = "stock", required = true) String stock) {
         return new ResponseEntity<>(userDataSetServices.getDetails(stock), HttpStatus.OK);
     }
 

@@ -9,7 +9,7 @@ public class ExceptionHandling {
 
 
     @ExceptionHandler(Exception.class)
-    public ApiResponse exception(Exception exception) {
+    public ApiResponse exceptionHandling(Exception exception) {
         ApiResponse apiResponse = new ApiResponse();
         apiResponse.setStatus(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()));
         apiResponse.setError(exception.getMessage());
