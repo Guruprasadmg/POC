@@ -94,19 +94,30 @@ public class UserDataSetServices {
 
 
     public ClientResponse getDetails(String stock) {
+        ClientResponse clientResponse = new ClientResponse();
         try {
-            ClientResponse clientResponse = new ClientResponse();
-            List<DataSet> dataSets = dataSetService.getDataSetByStock(stock);
-            List<DataSetDTO> dataSetDTOS = dataSets.stream().map(data -> {
-                DataSetDTO dataSetDTO = new DataSetDTO();
-                BeanUtils.copyProperties(data, dataSetDTO);
-                return dataSetDTO;
-            }).collect(Collectors.toList());
-            if (ObjectUtils.isNotEmpty(dataSetDTOS)) {
+            List<DataSet> dataSets;
+            if (stock.equalsIgnoreCase("all")) {
+                dataSets = dataSetService.findAllAsList();
+                List<DataSetDTO> dataSetDTOS = dataSets.stream().map(data -> {
+                    DataSetDTO dataSetDTO = new DataSetDTO();
+                    BeanUtils.copyProperties(data, dataSetDTO);
+                    return dataSetDTO;
+                }).collect(Collectors.toList());
                 clientResponse.setDataSets(dataSetDTOS);
-                return clientResponse;
+            } else {
+                dataSets = dataSetService.getDataSetByStock(stock);
+                List<DataSetDTO> dataSetDTOS = dataSets.stream().map(data -> {
+                    DataSetDTO dataSetDTO = new DataSetDTO();
+                    BeanUtils.copyProperties(data, dataSetDTO);
+                    return dataSetDTO;
+                }).collect(Collectors.toList());
+                if (ObjectUtils.isNotEmpty(dataSetDTOS)) {
+                    clientResponse.setDataSets(dataSetDTOS);
+                    return clientResponse;
+                }
+                clientResponse.setErrors(List.of("No data present"));
             }
-            clientResponse.setErrors(List.of("No data present"));
             return clientResponse;
         } catch (Exception exception) {
             log.error("Failed to fetch {}", exception.getMessage());
