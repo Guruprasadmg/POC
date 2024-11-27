@@ -19,5 +19,14 @@ Build : Maven
 # Tools
 IDE : IntelliJ
 
+# Test Data
+Added in TestData directory
 # Swagger 
 http://localhost:8089/swagger-ui.html
+
+
+DB Access
+http://localhost:8089/h2-console
+JDBC_URL : jdbc:h2:mem:poc
+username : sa
+password :

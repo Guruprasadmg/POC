@@ -13,4 +13,6 @@ public interface DataSetService extends CrudRepository<DataSet, String> {
     List<DataSet> getDataSetByStock(String stock);
     @Query("SELECT e FROM DataSet e")
     List<DataSet> findAllAsList();
+
+    DataSet getDataSetByQuarterAndStockAndDateAndVolume(Integer quarter, String stock, String date, Integer volume);
 }

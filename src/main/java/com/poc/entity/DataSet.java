@@ -14,7 +14,7 @@ public class DataSet {
     @UuidGenerator
     private String id;
     @Column
-    private String quarter;
+    private Integer quarter;
     @Column
     private String stock;
     @Column
@@ -28,13 +28,13 @@ public class DataSet {
     @Column
     private String close;
     @Column
-    private String volume;
+    private Integer volume;
     @Column
     private String percent_change_price;
     @Column
     private String percent_change_volume_over_last_wk;
     @Column
-    private String privious_weeks_volume;
+    private Integer privious_weeks_volume;
     @Column
     private String next_weeks_open;
     @Column
@@ -42,7 +42,7 @@ public class DataSet {
     @Column
     private String percent_change_next_weeks_price;
     @Column
-    private String days_to_next_dividend;
+    private Integer days_to_next_dividend;
     @Column
     private String percent_return_next_dividend;
 }
