@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class DataSetDTO {
-    private String quarter;
+    private Integer quarter;
 
     private String stock;
 
@@ -18,13 +18,13 @@ public class DataSetDTO {
 
     private String close;
 
-    private String volume;
+    private Integer volume;
 
     private String percent_change_price;
 
     private String percent_change_volume_over_last_wk;
 
-    private String privious_weeks_volume;
+    private Integer privious_weeks_volume;
 
     private String next_weeks_open;
 

@@ -47,8 +47,8 @@ public class UserDataSetServices {
         ClientResponse clientResponse = new ClientResponse();
         List<String> errors = new ArrayList<>();
         List<ErrorResponse> errorResponses = new ArrayList<>();
-        AtomicInteger validFiles=new AtomicInteger(0);
-        AtomicInteger inValidFiles=new AtomicInteger(0);
+        AtomicInteger validFiles = new AtomicInteger(0);
+        AtomicInteger inValidFiles = new AtomicInteger(0);
 
         if (ObjectUtils.isNotEmpty(files)) {
             clientResponse.setNoOfFilesSelected("Number of files are selected " + files.length);
@@ -66,8 +66,8 @@ public class UserDataSetServices {
                             }
                             int rowNumber = 2;
                             String[] row;
-                            AtomicInteger successRows=new AtomicInteger(0);
-                            AtomicInteger failureRows=new AtomicInteger(0);
+                            AtomicInteger successRows = new AtomicInteger(0);
+                            AtomicInteger failureRows = new AtomicInteger(0);
                             while ((row = reader.readNext()) != null) {
                                 List<String> rowErrors = new ArrayList<>();
                                 DataSet dataSet = setDataSet(row, dataSets, rowErrors);
@@ -84,9 +84,9 @@ public class UserDataSetServices {
                                 }
                                 rowNumber++;
                             }
-                            log.info("File name : {}",file.getOriginalFilename());
-                            log.info("Valid Number of rows {}",successRows.get());
-                            log.info("Invalid Number of rows {}",failureRows.get());
+                            log.info("File name : {}", file.getOriginalFilename());
+                            log.info("Valid Number of rows {}", successRows.get());
+                            log.info("Invalid Number of rows {}", failureRows.get());
                         } catch (Exception e) {
                             log.error("Failed to read the rows {}", e.getMessage(), e);
                             inValidFiles.addAndGet(1);
@@ -120,8 +120,8 @@ public class UserDataSetServices {
         log.info("Errors {}", errorResponses);
         clientResponse.setUploadFailed(String.valueOf(inValidFiles.get()));
         clientResponse.setUploadFailed(String.valueOf(validFiles.get()));
-        log.info("Number of valid files uploaded : {}",validFiles.get());
-        log.info("Number of invalid files uploaded : {}",inValidFiles.get());
+        log.info("Number of valid files uploaded : {}", validFiles.get());
+        log.info("Number of invalid files uploaded : {}", inValidFiles.get());
         fileWriter(errorResponses, clientResponse);
         return clientResponse;
     }
@@ -157,9 +157,9 @@ public class UserDataSetServices {
                 List<DataSetDTO> dataSetDTOS = dataSets.stream().map(data -> {
                     DataSetDTO dataSetDTO = new DataSetDTO();
                     BeanUtils.copyProperties(data, dataSetDTO);
-                    dataSetDTO.setQuarter(String.valueOf(data.getQuarter()));
-                    dataSetDTO.setVolume(String.valueOf(data.getVolume()));
-                    dataSetDTO.setPrivious_weeks_volume(String.valueOf(data.getPrivious_weeks_volume()));
+                    dataSetDTO.setQuarter(Integer.valueOf(String.valueOf(data.getQuarter())));
+                    dataSetDTO.setVolume(Integer.valueOf(String.valueOf(data.getVolume())));
+                    dataSetDTO.setPrivious_weeks_volume(Integer.valueOf(String.valueOf(data.getPrivious_weeks_volume())));
                     dataSetDTO.setDays_to_next_dividend(String.valueOf(data.getDays_to_next_dividend()));
 
 
@@ -171,9 +171,9 @@ public class UserDataSetServices {
                 List<DataSetDTO> dataSetDTOS = dataSets.stream().map(data -> {
                     DataSetDTO dataSetDTO = new DataSetDTO();
                     BeanUtils.copyProperties(data, dataSetDTO);
-                    dataSetDTO.setQuarter(String.valueOf(data.getQuarter()));
-                    dataSetDTO.setVolume(String.valueOf(data.getVolume()));
-                    dataSetDTO.setPrivious_weeks_volume(String.valueOf(data.getPrivious_weeks_volume()));
+                    dataSetDTO.setQuarter(Integer.valueOf(String.valueOf(data.getQuarter())));
+                    dataSetDTO.setVolume(Integer.valueOf(String.valueOf(data.getVolume())));
+                    dataSetDTO.setPrivious_weeks_volume(Integer.valueOf(String.valueOf(data.getPrivious_weeks_volume())));
                     dataSetDTO.setDays_to_next_dividend(String.valueOf(data.getDays_to_next_dividend()));
                     return dataSetDTO;
                 }).collect(Collectors.toList());
@@ -196,11 +196,21 @@ public class UserDataSetServices {
     public ClientResponse add(DataSetDTO data) {
         ClientResponse clientResponse = new ClientResponse();
         try {
-            DataSet dataSet = new DataSet();
-            BeanUtils.copyProperties(data, dataSet);
-            clientResponse.setStatus("Data has been added");
-            dataSetService.save(dataSet);
-            return clientResponse;
+            DataSet recordExist = dataSetService.getDataSetByQuarterAndStockAndDateAndVolume(data.getQuarter(), data.getStock(), data.getDate(), data.getVolume());
+            if (ObjectUtils.isEmpty(recordExist)) {
+                List<String> rowErrors = new ArrayList<>();
+                DataSet dataSet = validation(data, rowErrors);
+                if (rowErrors.isEmpty()) {
+                    dataSetService.save(dataSet);
+                    clientResponse.setStatus("New record has been added");
+                }else {
+                    clientResponse.setErrors(rowErrors);
+                }
+                return clientResponse;
+            } else {
+                log.error("Data already present in DB");
+                throw new DataSetException("Data already present");
+            }
         } catch (Exception exception) {
             log.error("Failed to add {}", exception.getMessage());
             throw new DataSetException("Failed to add data " + exception.getMessage(), exception);
@@ -224,5 +234,26 @@ public class UserDataSetServices {
             }
             log.info("Error response to csv done");
         }
+    }
+
+    private DataSet validation(DataSetDTO row, List<String> rowErrors) {
+        DataSet dataSet = new DataSet();
+        dataSet.setQuarter(AppUtils.validateIsNotEmptyAndNumeric(String.valueOf(row.getQuarter()), rowErrors, "Quarter"));
+        dataSet.setStock(AppUtils.validateIsNotEmpty(row.getStock(), rowErrors, "Stock"));
+        dataSet.setDate(AppUtils.validateDate(row.getDate(), rowErrors, "Date"));
+        dataSet.setOpen(AppUtils.validateIsNotEmptyAndDecimal(row.getOpen(), rowErrors, "Open"));
+        dataSet.setHigh(AppUtils.validateIsNotEmptyAndDecimal(row.getHigh(), rowErrors, "High"));
+        dataSet.setLow(AppUtils.validateIsNotEmptyAndDecimal(row.getLow(), rowErrors, "Low"));
+        dataSet.setClose(AppUtils.validateIsNotEmptyAndDecimal(row.getClose(), rowErrors, "Close"));
+        dataSet.setVolume(AppUtils.validateIsNotEmptyAndNumeric(String.valueOf(row.getVolume()), rowErrors, "Volume"));
+        dataSet.setPercent_change_price(AppUtils.validateIsNotEmptyAndDecimal(row.getPercent_change_price(), rowErrors, "percent_change_price"));
+        dataSet.setPercent_change_volume_over_last_wk(AppUtils.validateIsNotEmptyAndDecimal(row.getPercent_change_volume_over_last_wk(), rowErrors, "percent_change_volume_over_last_wk"));
+        dataSet.setPrivious_weeks_volume(AppUtils.validateIsNotEmptyAndNumeric(String.valueOf(row.getPrivious_weeks_volume()), rowErrors, "previous_weeks_volume"));
+        dataSet.setNext_weeks_open(AppUtils.validateIsNotEmptyAndDecimal(row.getNext_weeks_open(), rowErrors, "next_weeks_open"));
+        dataSet.setNext_weeks_close(AppUtils.validateIsNotEmptyAndDecimal(row.getNext_weeks_close(), rowErrors, "next_weeks_close"));
+        dataSet.setPercent_change_next_weeks_price(AppUtils.validateIsNotEmptyAndDecimal(row.getPercent_change_next_weeks_price(), rowErrors, "percent_change_next_weeks_price"));
+        dataSet.setDays_to_next_dividend(AppUtils.validateIsNotEmptyAndNumeric(row.getDays_to_next_dividend(), rowErrors, "days_to_next_dividend"));
+        dataSet.setPercent_return_next_dividend(AppUtils.validateIsNotEmptyAndDecimal(row.getDays_to_next_dividend(), rowErrors, "percent_return_next_dividend"));
+        return dataSet;
     }
 }
